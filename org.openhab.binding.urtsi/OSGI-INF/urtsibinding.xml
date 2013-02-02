@@ -34,5 +34,7 @@
    <implementation class="org.openhab.binding.urtsi.internal.UrtsiBinding"/>
    <service>
       <provide interface="org.openhab.model.item.binding.BindingConfigReader"/>
+      <provide interface="org.osgi.service.event.EventHandler"/>
    </service>
+   <property name="event.topics" type="String" value="openhab/command/*"/>
 </scr:component>

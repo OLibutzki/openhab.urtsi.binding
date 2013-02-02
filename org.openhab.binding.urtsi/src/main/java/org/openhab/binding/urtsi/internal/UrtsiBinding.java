@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.openhab.core.events.EventSubscriber;
+import org.openhab.core.events.AbstractEventSubscriber;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.items.RollershutterItem;
 import org.openhab.core.library.types.StopMoveType;
@@ -21,10 +21,9 @@ import org.openhab.model.item.binding.BindingConfigReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
+public class UrtsiBinding extends AbstractEventSubscriber implements BindingConfigReader {
 
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(UrtsiBinding.class);
 	
 	private Map<String, UrtsiDevice> urtsiPorts = new HashMap<String, UrtsiDevice>();
@@ -36,6 +35,10 @@ public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
 	private Map<String, Set<String>> contextMap = new HashMap<String, Set<String>>();
 
 	private static final Pattern CONFIG_BINDING_PATTERN = Pattern.compile("(.*?):([0-9]*)");
+	
+	private final static String COMMAND_UP = "U";
+	private final static String COMMAND_DOWN = "D";
+	private final static String COMMAND_STOP = "S";
 	
 	@Override
 	public String getBindingType() {
@@ -57,6 +60,7 @@ public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
 	@Override
 	public void processBindingConfiguration(String context, Item item,
 			String bindingConfig) throws BindingConfigParseException {
+		logger.debug("Process binding configuration for " + item.getName() + "; Context: " + context + "; Binding config: " + bindingConfig);
 		UrtsiItemConfiguration urtsiItemConfiguration = parseBindingConfig(bindingConfig);
 		String port = urtsiItemConfiguration.getPort();
 		UrtsiDevice urtsiDevice = urtsiPorts.get(port);
@@ -103,6 +107,7 @@ public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
 	 * {@inheritDoc}
 	 */
 	public void receiveCommand(String itemName, Command command) {
+		logger.debug("Received command for " + itemName + "! Command: " + command);
 		sendToUrtsi(itemName, command);
 	}
 	
@@ -110,6 +115,7 @@ public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
 	 * {@inheritDoc}
 	 */
 	public void receiveUpdate(String itemName, State newState) {
+		logger.debug("Received update for " + itemName + "! New state: " + newState);
 		sendToUrtsi(itemName, newState);
 	}
 
@@ -121,13 +127,13 @@ public class UrtsiBinding implements EventSubscriber, BindingConfigReader {
 			if (type instanceof UpDownType) {
 				UpDownType upDownType = (UpDownType) type;
 				switch (upDownType) {
-					case UP :  actionKey = "U"; break;
-					case DOWN :  actionKey = "D"; break;
+					case UP :  actionKey = COMMAND_UP; break;
+					case DOWN :  actionKey = COMMAND_DOWN; break;
 				}
 			} else if (type instanceof StopMoveType) {
 				StopMoveType stopMoveType = (StopMoveType) type;
 				switch (stopMoveType) {
-					case STOP : actionKey = "U"; break;
+					case STOP : actionKey = COMMAND_STOP; break;
 					default: break;
 				}
 			}

@@ -14,6 +14,7 @@ Import-Package: gnu.io,
  org.openhab.core.types,
  org.openhab.model.item.binding,
  org.osgi.framework,
+ org.osgi.service.event,
  org.slf4j
 Service-Component: OSGI-INF/urtsibinding.xml
 Bundle-ClassPath: .
