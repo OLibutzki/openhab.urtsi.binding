@@ -20,3 +20,7 @@ Service-Component: OSGI-INF/urtsibinding.xml
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.openhab.binding.urtsi.internal.UrtsiActivator
+Require-Bundle: org.eclipse.xtend.lib,
+ com.google.guava,
+ org.eclipse.xtext.xbase.lib
+

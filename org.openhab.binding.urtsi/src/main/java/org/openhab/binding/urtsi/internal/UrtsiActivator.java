@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Extension of the default OSGi bundle activator
  * 
- * @author Kai Kreuzer
- * @since 0.6.0
+ * @author Oliver Libutzki
+ * @since 1.2.0
  */
 public final class UrtsiActivator implements BundleActivator {
 
