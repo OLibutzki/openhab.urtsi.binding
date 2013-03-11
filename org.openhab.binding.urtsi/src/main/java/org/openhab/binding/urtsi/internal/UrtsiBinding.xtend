@@ -1,7 +1,5 @@
 package org.openhab.binding.urtsi.internal
 
-import org.openhab.binding.urtsi.UrtsiBindingProvider
-import org.openhab.core.binding.AbstractBinding
 import org.openhab.core.items.GenericItem
 import org.openhab.core.items.ItemRegistry
 import org.openhab.core.library.types.StopMoveType
@@ -16,7 +14,7 @@ import static org.openhab.binding.urtsi.internal.UrtsiBinding.*
 import static org.openhab.core.library.types.StopMoveType.*
 import static org.openhab.core.library.types.UpDownType.*
 
-class UrtsiBinding extends AbstractBinding<UrtsiBindingProvider> {
+class UrtsiBinding extends AbstractUrtsiBinding {
 
 	static val Logger logger = LoggerFactory::getLogger(typeof(UrtsiBinding))
 	
