@@ -1,8 +1,10 @@
 package org.openhab.binding.urtsi.internal
 
+import org.openhab.core.binding.BindingConfig
+
 @Data
-class UrtsiItemConfiguration {
+class UrtsiItemConfiguration implements BindingConfig {
 	
-	private String port;
-	private int channel;
+	String port
+	int channel
 }

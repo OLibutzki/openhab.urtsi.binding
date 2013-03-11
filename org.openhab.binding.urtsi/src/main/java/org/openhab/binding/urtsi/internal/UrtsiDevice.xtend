@@ -36,7 +36,7 @@ class UrtsiDevice {
 	DedicatedThreadExecutor threadExecutor = new DedicatedThreadExecutor
 
 	public new(String port) {
-		this.port = port;
+		this.port = port
 	}
 	
 	/**
@@ -52,40 +52,40 @@ class UrtsiDevice {
 			val id = portList.nextElement() as CommPortIdentifier
 			if (id.portType == CommPortIdentifier::PORT_SERIAL) {
 				if (id.name.equals(port)) {
-					logger.debug("Serial port '{}' has been found.", port);
-					portId = id;
+					logger.debug("Serial port '{}' has been found.", port)
+					portId = id
 				}
 			}
 		}
 		if (portId != null) {
 			// initialize serial port
 			try {
-				serialPort = portId.open("openHAB", 2000) as SerialPort;
+				serialPort = portId.open("openHAB", 2000) as SerialPort
 			} catch (PortInUseException e) {
-				throw new InitializationException(e);
+				throw new InitializationException(e)
 			}
 
 			try {
 				// set port parameters
-				serialPort.setSerialPortParams(baud, databits, stopbit, parity);
+				serialPort.setSerialPortParams(baud, databits, stopbit, parity)
 			} catch (UnsupportedCommOperationException e) {
-				throw new InitializationException(e);
+				throw new InitializationException(e)
 			}
 
 			try {
-				inputStream = serialPort.inputStream;
+				inputStream = serialPort.inputStream
 			} catch (IOException e) {
-				throw new InitializationException(e);
+				throw new InitializationException(e)
 			}
 			
 			try {
 				// get the output stream
 				outputStream = serialPort.outputStream
 			} catch (IOException e) {
-				throw new InitializationException(e);
+				throw new InitializationException(e)
 			}
 		} else {
-			val sb = new StringBuilder();
+			val sb = new StringBuilder()
 			portList = CommPortIdentifier::portIdentifiers
 			while (portList.hasMoreElements()) {
 				val id = portList.nextElement() as CommPortIdentifier
@@ -106,63 +106,60 @@ class UrtsiDevice {
 	 * @param msg
 	 *            the string to send
 	 */
-	def void writeString(String msg) {
-		logger.debug("Writing '{}' to serial port {}", newArrayList( msg, port ));
-
-		threadExecutor.execute( [
-			try {
-				val List<Boolean> listenerResult = newArrayList
-				serialPort.addEventListener[event | 
-					switch (event.eventType) {
-						case SerialPortEvent::DATA_AVAILABLE: {
-							// we get here if data has been received
-							val sb = new StringBuilder()
-							val readBuffer = getByteArray(20)
-							try {
-								do {
-									// read data from serial device
-									while (inputStream.available > 0) {
-										val bytes = inputStream.read(readBuffer)
-										sb.append(new String(readBuffer, 0, bytes))
+	def boolean writeString(String msg) {
+		logger.debug("Writing '{}' to serial port {}", newArrayList( msg, port ))
+		val future = 
+			threadExecutor.execute( [
+				try {
+					val List<Boolean> listenerResult = newArrayList
+					serialPort.addEventListener[event | 
+						switch (event.eventType) {
+							case SerialPortEvent::DATA_AVAILABLE: {
+								// we get here if data has been received
+								val sb = new StringBuilder()
+								val readBuffer = getByteArray(20)
+								try {
+									do {
+										// read data from serial device
+										while (inputStream.available > 0) {
+											val bytes = inputStream.read(readBuffer)
+											sb.append(new String(readBuffer, 0, bytes))
+										}
+										try {
+											// add wait states around reading the stream, so that interrupted transmissions are merged
+											Thread::sleep(100)
+										} catch (InterruptedException e) {
+											// ignore interruption
+										}
+									} while (inputStream.available > 0)
+									val result = sb.toString
+									if (result == msg) {
+										listenerResult.add(true)
 									}
-									try {
-										// add wait states around reading the stream, so that interrupted transmissions are merged
-										Thread::sleep(100)
-									} catch (InterruptedException e) {
-										// ignore interruption
-									}
-								} while (inputStream.available > 0)
-								val result = sb.toString
-								if (result == msg) {
-									listenerResult.add(true)
+										
+								} catch (IOException e) {
+									logger.debug("Error receiving data on serial port {}: {}", newArrayList( port, e.message ))
 								}
-									
-							} catch (IOException e) {
-								logger.debug("Error receiving data on serial port {}: {}", newArrayList( port, e.message ));
 							}
 						}
+							
+					]
+					serialPort.notifyOnDataAvailable(true)
+					outputStream.write(msg.bytes)
+					outputStream.flush()
+					val timeout = System::currentTimeMillis + 1000
+					while (listenerResult.empty && System::currentTimeMillis < timeout) {
+						// Waiting for response
 					}
-						
-				]
-				serialPort.notifyOnDataAvailable(true)
-				outputStream.write(msg.bytes)
-				outputStream.flush()
-				val timeout = System::currentTimeMillis + 1000
-				while (listenerResult.empty && System::currentTimeMillis < timeout) {
-					// Waiting for response
+					return !listenerResult.empty
+				} catch (IOException e) {
+					logger.error("Error writing '{}' to serial port {}: {}",
+							newArrayList ( msg, port, e.getMessage() ))
+				} finally {
+					serialPort.removeEventListener()
 				}
-				if (listenerResult.empty) {
-					logger.warn("Waiting for answer for command '{}' at serial port {} timed out.",
-							newArrayList ( msg, port ))
-				}
-			} catch (IOException e) {
-				logger.error("Error writing '{}' to serial port {}: {}",
-						newArrayList ( msg, port, e.getMessage() ));
-			} finally {
-				serialPort.removeEventListener();
-			}
-			null
-		])
+			])
+		future.get
 	}
 	
 	/**

@@ -7,6 +7,8 @@ Bundle-Vendor: openHAB.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: gnu.io,
  org.apache.commons.io,
+ org.openhab.core.autoupdate,
+ org.openhab.core.binding,
  org.openhab.core.events,
  org.openhab.core.items,
  org.openhab.core.library.items,
@@ -16,11 +18,12 @@ Import-Package: gnu.io,
  org.osgi.framework,
  org.osgi.service.event,
  org.slf4j
-Service-Component: OSGI-INF/urtsibinding.xml
+Service-Component: OSGI-INF/genericbindingprovider.xml, OSGI-INF/urtsibinding.xml
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.openhab.binding.urtsi.internal.UrtsiActivator
 Require-Bundle: org.eclipse.xtend.lib,
  com.google.guava,
  org.eclipse.xtext.xbase.lib
+Export-Package: org.openhab.binding.urtsi
 
